@@ -6,7 +6,7 @@ import App from './App.jsx'
 
 const GOOGLE_CLIENT_ID =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-  '549637050345-jfkk66v66ilefdtf1ag5s3u27m0mlhac.apps.googleusercontent.com'
+  '549637050345-g52jsjgq70ml19m7fq97sk1vufu38j39.apps.googleusercontent.com'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
