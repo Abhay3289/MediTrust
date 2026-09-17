@@ -6,15 +6,20 @@ import { apiError } from '../services/api';
 
 export function DoctorDetailsPage({ doctorId, onNavigate, onProceedToBooking }) {
   const [doctor,setDoctor]=useState(null); const [error,setError]=useState('');
-  useEffect(()=>{Promise.all([doctorService.get(doctorId),doctorService.reviews(doctorId)]).then(([d,r])=>setDoctor({...d,reviews:r.map(x=>({...x,author:x.reviewer_name||`User ${x.user_id}`,date:new Date(x.created_at).toLocaleDateString()}))})).catch(e=>setError(apiError(e)));},[doctorId]);
-  if(error) return <div className="container"><div className="no-results-state"><h3>{error}</h3></div></div>;
-  if(!doctor) return <div className="container"><div className="no-results-state"><h3>Loading doctor...</h3></div></div>;
 
+  // Hooks must run unconditionally on every render — these were previously
+  // declared after the loading/error early-returns below, so React saw a
+  // different number of hooks once `doctor` loaded and crashed the whole
+  // app (blank white page, nothing clickable) instead of just this page.
   const [consultationType, setConsultationType] = useState('video'); // 'video' | 'in-person'
   const today = new Date();
   const iso = (offset=0) => { const d=new Date(today); d.setDate(d.getDate()+offset); return d.toISOString().slice(0,10); };
   const [selectedDate, setSelectedDate] = useState(iso(0));
   const [selectedTime, setSelectedTime] = useState('10:30 AM');
+
+  useEffect(()=>{Promise.all([doctorService.get(doctorId),doctorService.reviews(doctorId)]).then(([d,r])=>setDoctor({...d,reviews:r.map(x=>({...x,author:x.reviewer_name||`User ${x.user_id}`,date:new Date(x.created_at).toLocaleDateString()}))})).catch(e=>setError(apiError(e)));},[doctorId]);
+  if(error) return <div className="container"><div className="no-results-state"><h3>{error}</h3></div></div>;
+  if(!doctor) return <div className="container"><div className="no-results-state"><h3>Loading doctor...</h3></div></div>;
 
   const availableDates = [
     { label: 'Today', sub: 'Available', value: iso(0) },
