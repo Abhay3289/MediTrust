@@ -1,4 +1,4 @@
-import { useState,useEffect } from 'react';
+import { useState,useEffect,useRef } from 'react';
 import { Icon } from '../components/Icons';
 import { HospitalSkyline } from '../components/HospitalSkyline';
 import { TrustBadge } from '../components/TrustBadge';
@@ -8,7 +8,46 @@ import { doctorService } from '../services/doctorService';
 import { apiError } from '../services/api';
 import { TRUST_WEIGHTS, TRUST_FACTOR_LABELS } from '../utils/trustEngine';
 
+const POPULAR_SEARCHES = ['Cardiology', 'Cancer Care', 'Diabetes', 'Pediatrics', 'Orthopedics', 'Emergency'];
+
+const HERO_STATS = [
+  { icon: 'activity', value: '24/7', label: 'Emergency hospital finder' },
+  { icon: 'shield', value: '6-factor', label: 'Explainable Trust Score' },
+  { icon: 'map-pin', value: 'Live', label: 'Maps-powered search' },
+  { icon: 'lock', value: '₹0', label: 'Pay-to-rank fees' },
+];
+
+const HOW_IT_WORKS = [
+  { icon: 'search', title: 'Search your need', text: 'Type a hospital, specialty or disease — or tap Near Me to see what is around you.' },
+  { icon: 'shield', title: 'Compare with trust', text: 'See distance, ratings and a transparent Trust Score before you decide.' },
+  { icon: 'navigation', title: 'Go with confidence', text: 'Get directions, book a visit and find an affordable stay near the hospital.' },
+];
+
+// Fades each marked section in the first time it scrolls into view.
+function useRevealOnScroll() {
+  const rootRef = useRef(null);
+  useEffect(() => {
+    const els = rootRef.current?.querySelectorAll('.reveal') || [];
+    if (!('IntersectionObserver' in window)) {
+      els.forEach((el) => el.classList.add('is-visible'));
+      return undefined;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    els.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+  return rootRef;
+}
+
 export function HomePage({ onNavigate, onSelectHospital, onSearchHospitals }) {
+  const revealRef = useRevealOnScroll();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('Near me');
   const [isLocating, setIsLocating] = useState(false);
@@ -24,6 +63,15 @@ export function HomePage({ onNavigate, onSelectHospital, onSearchHospitals }) {
     }
   };
 
+  const handleQuickSearch = (term) => {
+    setSearchQuery(term);
+    if (onSearchHospitals) {
+      onSearchHospitals(term, selectedLocation);
+    } else {
+      onNavigate('results', { query: term, location: selectedLocation });
+    }
+  };
+
   const handleUseLocation = () => {
     setIsLocating(true);
     if(!navigator.geolocation){setSelectedLocation('Manual Location');setIsLocating(false);return;}
@@ -31,7 +79,7 @@ export function HomePage({ onNavigate, onSelectHospital, onSearchHospitals }) {
   };
 
   return (
-    <div className="homepage-container">
+    <div className="homepage-container" ref={revealRef}>
       {loadError && <div className="auth-error-note" style={{margin:'16px auto',maxWidth:'1100px'}}>{loadError}</div>}
       {/* 1. Hero / Hospital Discovery Search Area */}
       <section className="home-hero-section">
@@ -85,6 +133,21 @@ export function HomePage({ onNavigate, onSelectHospital, onSearchHospitals }) {
               </button>
             </form>
 
+            {/* Popular one-tap searches */}
+            <div className="popular-searches">
+              <span className="popular-searches-label">Popular:</span>
+              {POPULAR_SEARCHES.map((term) => (
+                <button
+                  key={term}
+                  type="button"
+                  className="popular-chip"
+                  onClick={() => handleQuickSearch(term)}
+                >
+                  {term}
+                </button>
+              ))}
+            </div>
+
             {/* Quick Helper Banner for Health Problem Input */}
             <div className="quick-problem-prompt">
               <span>Have specific symptoms or medical condition?</span>
@@ -97,12 +160,26 @@ export function HomePage({ onNavigate, onSelectHospital, onSearchHospitals }) {
                 <Icon name="arrow-right" size={15} />
               </button>
             </div>
+
+            <div className="hero-stats">
+              {HERO_STATS.map((stat) => (
+                <div key={stat.label} className="hero-stat">
+                  <span className="hero-stat-icon">
+                    <Icon name={stat.icon} size={18} />
+                  </span>
+                  <div>
+                    <strong>{stat.value}</strong>
+                    <span>{stat.label}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* 2. Featured / Nearby Hospitals List */}
-      <section className="home-hospitals-section">
+      <section className="home-hospitals-section reveal">
         <div className="container">
           <div className="section-header-split">
             <div>
@@ -208,8 +285,36 @@ export function HomePage({ onNavigate, onSelectHospital, onSearchHospitals }) {
         </div>
       </section>
 
+      {/* How it works */}
+      <section className="how-it-works-section reveal">
+        <div className="container">
+          <div className="section-header center">
+            <div className="section-pill">
+              <Icon name="sparkles" size={14} />
+              <span>How MediTrust Works</span>
+            </div>
+            <h2 className="section-title">From symptom to the right hospital in 3 steps</h2>
+            <p className="section-subtitle">
+              No guesswork, no paid rankings — just the information you need to choose care with confidence.
+            </p>
+          </div>
+          <div className="how-steps">
+            {HOW_IT_WORKS.map((step, idx) => (
+              <div key={step.title} className="how-step">
+                <span className="how-step-number">{idx + 1}</span>
+                <div className="how-step-icon">
+                  <Icon name={step.icon} size={24} />
+                </div>
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* 2.5 MediTrust Trust Engine Explainer — the "heart of MediTrust" (PRD Section 14/15) */}
-      <section className="trust-engine-section">
+      <section className="trust-engine-section reveal">
         <div className="container">
           <div className="trust-engine-grid">
             <div className="trust-engine-intro">
@@ -270,7 +375,7 @@ export function HomePage({ onNavigate, onSelectHospital, onSearchHospitals }) {
       </section>
 
       {/* 2.75 Meet Our Verified Doctors — reachable from the home page (PRD Module 3) */}
-      <section className="home-doctors-section">
+      <section className="home-doctors-section reveal">
         <div className="container">
           <div className="section-header-split">
             <div>
@@ -326,7 +431,7 @@ export function HomePage({ onNavigate, onSelectHospital, onSearchHospitals }) {
       </section>
 
       {/* 3. Patient Reviews Section (clean, towards lower portion) */}
-      <section className="home-reviews-section">
+      <section className="home-reviews-section reveal">
         <div className="container">
           <div className="section-header center">
             <div className="section-pill">
