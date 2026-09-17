@@ -1,0 +1,15 @@
+# Never upload local env files with a `vercel deploy` from this folder —
+# they hold localhost URLs / secrets meant for local dev only. Vercel's own
+# Environment Variables (Settings > Environment Variables) are what the
+# actual build uses.
+.env
+.env.*
+!.env.example
+frontend-backup/
+node_modules/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/
+meditrust.db
