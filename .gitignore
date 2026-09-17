@@ -26,3 +26,5 @@ frontend-backup/
 .DS_Store
 __MACOSX/
 *.log
+.vercel
+.env*

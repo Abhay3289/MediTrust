@@ -1,9 +1,4 @@
 from pydantic import BaseModel, Field, field_validator
-from google.oauth2 import id_token
-from google.auth.transport import requests
-from fastapi import HTTPException, status
-class GoogleLoginRequest(BaseModel):
-    credential: str
 
 # =========================================================
 # REGISTER
@@ -100,17 +95,3 @@ class ResetPasswordRequest(BaseModel):
 
 class ResetPasswordResponse(BaseModel):
     message: str
-def verify_google_credential(credential: str):
-    try:
-        google_user = id_token.verify_oauth2_token(
-            credential,
-            requests.Request(),
-        )
-
-        return google_user
-
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid Google credential",
-        )
