@@ -121,6 +121,10 @@ body {
   background-color: var(--bg-page);
   color: var(--text-body);
   overflow-x: hidden;
+  /* `clip` hides sideways overflow without turning body into a scroll
+     container — with `hidden`, position: sticky (results map, booking
+     summary) sticks to body, which never scrolls, so it never sticks. */
+  overflow-x: clip;
 }
 
 #root {

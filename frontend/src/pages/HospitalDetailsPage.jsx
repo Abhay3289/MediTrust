@@ -87,10 +87,12 @@ export function HospitalDetailsPage({ hospitalId, onNavigate, onBookHospitalVisi
                 <Icon name="map-pin" size={16} color="#4f46e5" />
                 <span>{hospital.city ? `${hospital.address}, ${hospital.city}` : hospital.address}</span>
               </div>
-              <div className="meta-highlight-item">
-                <Icon name="navigation" size={16} color="#0d9488" />
-                <strong>{hospital.distanceText}</strong>
-              </div>
+              {hospital.distanceText && (
+                <div className="meta-highlight-item">
+                  <Icon name="navigation" size={16} color="#0d9488" />
+                  <strong>{hospital.distanceText}</strong>
+                </div>
+              )}
               <div className="meta-highlight-item">
                 <Icon name="clock" size={16} color="#3730a3" />
                 <span>Current ER Triage Wait: <strong>{hospital.erWaitTime}</strong></span>

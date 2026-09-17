@@ -44,7 +44,7 @@ export function HealthProblemPage({ onNavigate, onSelectHospital }) {
       const deptMatch = cat.recommendedDepartments.some((d) => d.toLowerCase().includes(q));
       return nameMatch || keywordMatch || deptMatch;
     });
-  }, [inputText, activeCatalogId]);
+  }, [inputText, activeCatalogId, healthProblemsCatalog]);
 
   // Suitable hospitals derived from matches
   const recommendedHospitals = useMemo(() => {
@@ -60,7 +60,7 @@ export function HealthProblemPage({ onNavigate, onSelectHospital }) {
 
     const matches = hospitalsData.filter((h) => targetHospitalIds.has(h.id));
     return matches.length > 0 ? matches : hospitalsData.slice(0, 3);
-  }, [matchedCatalog]);
+  }, [matchedCatalog, hospitalsData]);
 
   // The specialty MediTrust is matching against, used by both the Match Score and "Why This Hospital?" explainer
   const effectiveSpecialty = matchedCatalog[0]?.recommendedDepartments[0] || inputText;
@@ -247,10 +247,12 @@ export function HealthProblemPage({ onNavigate, onSelectHospital }) {
                 </div>
 
                 <div className="suitable-meta-row">
-                  <span className="meta-pill distance">
-                    <Icon name="navigation" size={13} />
-                    <span>{hosp.distanceText}</span>
-                  </span>
+                  {hosp.distanceText && (
+                    <span className="meta-pill distance">
+                      <Icon name="navigation" size={13} />
+                      <span>{hosp.distanceText}</span>
+                    </span>
+                  )}
                   <span className="meta-pill wait">
                     <Icon name="clock" size={13} />
                     <span>ER Wait: {hosp.erWaitTime}</span>
