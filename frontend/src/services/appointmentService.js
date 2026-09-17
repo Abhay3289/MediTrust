@@ -1,0 +1,2 @@
+import { api } from './api';
+export const appointmentService={create:async(payload)=>{const{data}=await api.post('/appointments',payload);return data;},list:async()=>{const{data}=await api.get('/appointments');return data;},get:async(id)=>{const{data}=await api.get(`/appointments/${id}`);return data;},update:async(id,payload)=>{const{data}=await api.patch(`/appointments/${id}`,payload);return data;},cancel:async(id)=>{const{data}=await api.delete(`/appointments/${id}`);return data;}};

@@ -1,48 +1,95 @@
-import enum
+from datetime import datetime, timezone
+from enum import Enum
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String
-from sqlalchemy.sql import func
+from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.db.base import Base
 
 
-class UserRole(str, enum.Enum):
-    patient = "patient"
-    doctor = "doctor"
-    mediator = "mediator"
-    admin = "admin"
+class UserRole(str, Enum):
+    PATIENT = "patient"
+    DOCTOR = "doctor"
+    ADMIN = "admin"
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    full_name = Column(String(150), nullable=False)
+    full_name: Mapped[str] = mapped_column(String(120))
 
-    email = Column(String(255), unique=True, index=True, nullable=False)
-
-    # Optional field, but if provided, it must be unique.
-    # PostgreSQL allows multiple NULL values in a unique column,
-    # so this does not force every user to have a phone number.
-    phone = Column(String(20), unique=True, index=True, nullable=True)
-
-    # We only ever store the HASH of a password, never the real password.
-    password_hash = Column(String(255), nullable=False)
-
-    role = Column(Enum(UserRole), nullable=False, default=UserRole.patient)
-
-    is_active = Column(Boolean, nullable=False, default=True)
-
-    created_at = Column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+    email: Mapped[str | None] = mapped_column(
+        String(255),
+        unique=True,
+        index=True,
+        nullable=True
     )
-    updated_at = Column(
+
+    phone: Mapped[str | None] = mapped_column(
+        String(30),
+        unique=True,
+        index=True,
+        nullable=True
+    )
+
+    hashed_password: Mapped[str] = mapped_column(Text)
+
+    role: Mapped[UserRole] = mapped_column(
+        String(20),
+        default=UserRole.PATIENT,
+        index=True
+    )
+
+    city: Mapped[str | None] = mapped_column(
+        String(120),
+        nullable=True
+    )
+
+    latitude: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True
+    )
+
+    longitude: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True
+    )
+
+    consent: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
-        nullable=False,
+        default=lambda: datetime.now(timezone.utc)
     )
 
-    def __repr__(self):
-        return f"<User id={self.id} email={self.email} role={self.role}>"
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+    appointments = relationship(
+        "Appointment",
+        back_populates="patient"
+    )
+
+    consultations = relationship(
+        "Consultation",
+        back_populates="patient"
+    )
+
+    reviews = relationship(
+        "Review",
+        back_populates="user"
+    )
+
+    saved_hospitals = relationship(
+        "SavedHospital",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )

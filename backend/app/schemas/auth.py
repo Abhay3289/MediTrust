@@ -1,81 +1,116 @@
-import re
-from datetime import datetime
-from typing import Optional
+from pydantic import BaseModel, Field, field_validator
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from fastapi import HTTPException, status
+class GoogleLoginRequest(BaseModel):
+    credential: str
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
-
-from app.models.user import UserRole
-
-
-def _validate_password_strength(value: str) -> str:
-    if not re.search(r"[A-Za-z]", value):
-        raise ValueError("Password must contain at least one letter.")
-    if not re.search(r"[0-9]", value):
-        raise ValueError("Password must contain at least one number.")
-    return value
-
+# =========================================================
+# REGISTER
+# =========================================================
 
 class RegisterRequest(BaseModel):
-    full_name: str = Field(..., min_length=2, max_length=150)
-    email: EmailStr
-    phone: Optional[str] = Field(default=None, min_length=7, max_length=20)
-    # bcrypt (used in app/core/security.py) only looks at the first 72 bytes
-    # of a password, so we cap length here to avoid a false sense of security.
-    password: str = Field(..., min_length=8, max_length=72)
-    role: UserRole
-
-    @field_validator("password")
-    @classmethod
-    def password_must_be_strong(cls, value: str) -> str:
-        return _validate_password_strength(value)
+    full_name: str = Field(min_length=2, max_length=120)
+    identifier: str
+    password: str = Field(min_length=8, max_length=128)
+    role: str = "patient"
+    city: str | None = None
+    consent: bool = False
 
     @field_validator("role")
     @classmethod
-    def disallow_admin_self_registration(cls, value: UserRole) -> UserRole:
-        # Admin accounts must never be creatable through public
-        # self-registration. Admins should be created through a separate,
-        # protected process (e.g. directly in the database, or by an
-        # existing admin), not by anyone who fills out this form.
-        if value == UserRole.admin:
-            raise ValueError("The admin role cannot be selected during self-registration.")
-        return value
+    def valid_role(cls, v):
+        if v not in {"patient", "caregiver"}:
+            raise ValueError("Role must be patient or caregiver")
+        return v
 
+
+# =========================================================
+# LOGIN
+# =========================================================
 
 class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str = Field(..., min_length=1)
+    identifier: str
+    password: str
 
 
-class UserResponse(BaseModel):
-    # Allows building this schema directly from a SQLAlchemy User object
-    # (e.g. UserResponse.model_validate(user_instance)).
-    model_config = ConfigDict(from_attributes=True)
+# =========================================================
+# REFRESH TOKEN
+# =========================================================
 
-    id: int
-    full_name: str
-    email: EmailStr
-    phone: Optional[str] = None
-    role: UserRole
-    is_active: bool
-    created_at: datetime
-    # Intentionally no password_hash field here — it must never be
-    # sent back to the frontend.
+class RefreshRequest(BaseModel):
+    refresh_token: str
 
 
 class TokenResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
 
 
-class ForgotPasswordRequest(BaseModel):
-    email: EmailStr
+# =========================================================
+# USER RESPONSE
+# =========================================================
 
+class UserResponse(BaseModel):
+    id: int
+    full_name: str
+    email: str | None = None
+    phone: str | None = None
+    role: str
+    city: str | None = None
+    consent: bool
+
+    model_config = {"from_attributes": True}
+
+
+# =========================================================
+# FORGOT PASSWORD
+# =========================================================
+
+class ForgotPasswordRequest(BaseModel):
+    identifier: str
+
+
+class ForgotPasswordResponse(BaseModel):
+    message: str
+
+
+# =========================================================
+# VERIFY OTP
+# =========================================================
+
+class VerifyOTPRequest(BaseModel):
+    identifier: str
+    otp: str = Field(min_length=6, max_length=6)
+
+
+class VerifyOTPResponse(BaseModel):
+    message: str
+
+
+# =========================================================
+# RESET PASSWORD
+# =========================================================
 
 class ResetPasswordRequest(BaseModel):
-    token: str
-    new_password: str = Field(..., min_length=8, max_length=72)
+    identifier: str
+    new_password: str = Field(min_length=8, max_length=128)
 
-    @field_validator("new_password")
-    @classmethod
-    def password_must_be_strong(cls, value: str) -> str:
-        return _validate_password_strength(value)
+
+class ResetPasswordResponse(BaseModel):
+    message: str
+def verify_google_credential(credential: str):
+    try:
+        google_user = id_token.verify_oauth2_token(
+            credential,
+            requests.Request(),
+        )
+
+        return google_user
+
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Google credential",
+        )

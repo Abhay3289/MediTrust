@@ -1,0 +1,2 @@
+import { api } from './api';
+export const consultationService={create:async(payload)=>{const{data}=await api.post('/consultations',payload);return data;},list:async()=>{const{data}=await api.get('/consultations');return data;},get:async(id)=>{const{data}=await api.get(`/consultations/${id}`);return data;},update:async(id,payload)=>{const{data}=await api.patch(`/consultations/${id}`,payload);return data;}};

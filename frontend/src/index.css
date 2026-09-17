@@ -1,0 +1,370 @@
+/* MediTrust Healthcare Design System & Base Variables */
+
+:root {
+  /* Brand Medical Color Palette — Indigo x Emerald "Trust Weave" */
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-deep: #3730a3;
+  --primary-light: #e0e7ff;
+  --primary-ultralight: #f5f5ff;
+
+  /* Healing & Trust Accents */
+  --teal: #0d9488;
+  --teal-light: #ccfbf1;
+  --emerald: #10b981;
+  --amber: #f59e0b;
+  --amber-light: #fef3c7;
+  --gold: #d97706;
+  --rose: #e11d48;
+  --rose-light: #ffe4e6;
+
+  /* Signature Gradients */
+  --gradient-brand: linear-gradient(135deg, #4338ca 0%, #4f46e5 45%, #0d9488 100%);
+  --gradient-brand-vivid: linear-gradient(120deg, #6d28d9 0%, #4f46e5 50%, #0d9488 100%);
+  --gradient-dark: linear-gradient(160deg, #0b0a1f 0%, #1e1b4b 45%, #312e81 100%);
+  --gradient-gold: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+
+  /* Neutrals & Dark Theme Supports */
+  --text-heading: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+
+  --bg-page: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-subtle: #f1f5f9;
+
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 8px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 20px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+  --shadow-xl: 0 20px 30px -5px rgba(15, 23, 42, 0.1), 0 10px 12px -5px rgba(15, 23, 42, 0.04);
+  --shadow-card-hover: 0 20px 35px -8px rgba(79, 70, 229, 0.15), 0 6px 12px -4px rgba(15, 23, 42, 0.06);
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Sora', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --transition-normal: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-bounce: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Reset & Box Sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-main);
+  scroll-behavior: smooth;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-body);
+  background-color: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-page);
+  color: var(--text-body);
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-page);
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-inline: 16px;
+  }
+}
+
+/* Typography Standards */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--text-heading);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+  margin-bottom: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: var(--transition-normal);
+}
+
+ul {
+  list-style: none;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+/* Common Section Headers */
+.section-header {
+  margin-bottom: 48px;
+  text-align: left;
+}
+
+.section-header.center {
+  text-align: center;
+}
+
+.section-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background-color: var(--primary-light);
+  color: var(--primary-deep);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+  letter-spacing: 0.2px;
+}
+
+.section-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.85rem;
+  }
+}
+
+.section-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  max-width: 680px;
+  line-height: 1.6;
+}
+
+.section-header.center .section-subtitle {
+  margin-inline: auto;
+}
+
+/* Universal Button Styles */
+.btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: var(--transition-bounce);
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  transform: translateY(0);
+}
+
+/* Glossy top highlight shared by every button, for a raised "3D" feel */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 55%);
+  pointer-events: none;
+}
+
+.btn > * {
+  position: relative;
+  z-index: 2;
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #6a63f0 0%, var(--primary) 55%, var(--primary-hover) 100%);
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -3px 0 rgba(49, 33, 145, 0.35),
+    0 8px 18px -4px rgba(79, 70, 229, 0.5),
+    0 2px 4px rgba(15, 23, 42, 0.12);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -3px 0 rgba(49, 33, 145, 0.4),
+    0 12px 24px -6px rgba(79, 70, 229, 0.55),
+    0 4px 8px rgba(15, 23, 42, 0.15);
+}
+
+.btn-primary:active {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 1px 4px rgba(49, 33, 145, 0.45),
+    0 3px 8px -2px rgba(79, 70, 229, 0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  color: var(--text-heading);
+  border-color: var(--border-subtle);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 1px 0 rgba(15, 23, 42, 0.04),
+    var(--shadow-sm);
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(180deg, #ffffff 0%, var(--bg-subtle) 100%);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    var(--shadow-md);
+}
+
+.btn-secondary:active {
+  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.08);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 0 rgba(79, 70, 229, 0);
+}
+
+.btn-outline:hover {
+  background-color: var(--primary-light);
+  color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px -4px rgba(79, 70, 229, 0.25);
+}
+
+.btn-outline:active {
+  box-shadow: inset 0 2px 4px rgba(79, 70, 229, 0.15);
+}
+
+.btn-accent {
+  background: linear-gradient(180deg, #14b8a6 0%, var(--teal) 55%, #0f766e 100%);
+  color: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -3px 0 rgba(6, 78, 71, 0.4),
+    0 8px 18px -4px rgba(13, 148, 136, 0.5);
+}
+
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -3px 0 rgba(6, 78, 71, 0.45),
+    0 12px 24px -6px rgba(13, 148, 136, 0.55);
+}
+
+.btn-accent:active {
+  box-shadow:
+    inset 0 1px 4px rgba(6, 78, 71, 0.5),
+    0 3px 8px -2px rgba(13, 148, 136, 0.4);
+}
+
+.btn-white {
+  background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+  color: var(--primary-deep);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 0 rgba(15, 23, 42, 0.06),
+    0 8px 16px -4px rgba(15, 23, 42, 0.2);
+}
+
+.btn-white:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 12px 22px -5px rgba(15, 23, 42, 0.25);
+}
+
+.btn-white:active {
+  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.15);
+}
+
+.btn-ghost-white {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(6px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.btn-ghost-white:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.btn-ghost-white:active {
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+}
+
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 1.05rem;
+}
+
+.btn-block {
+  width: 100%;
+}
