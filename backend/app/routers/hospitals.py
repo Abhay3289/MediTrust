@@ -1,5 +1,6 @@
 from math import ceil
 
+import httpx
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy import func, or_, select, String, cast
 from sqlalchemy.orm import Session
@@ -23,6 +24,31 @@ from app.services.google_places_service import (
 
 
 router = APIRouter(prefix="/hospitals", tags=["Hospitals"])
+
+
+async def _call_google(coro):
+    """Await a Google Places call, turning its failures into a clear
+    response instead of an opaque 500 "Internal server error"."""
+    try:
+        return await coro
+    except RuntimeError as e:
+        # e.g. GOOGLE_MAPS_API_KEY not configured.
+        raise HTTPException(status_code=503, detail=str(e))
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 429:
+            raise HTTPException(
+                status_code=503,
+                detail="Real-time hospital search is rate-limited right now. Please try again in a minute.",
+            )
+        raise HTTPException(
+            status_code=502,
+            detail="Unable to reach Google Maps right now. Please try again.",
+        )
+    except httpx.HTTPError:
+        raise HTTPException(
+            status_code=502,
+            detail="Unable to reach Google Maps right now. Please try again.",
+        )
 
 
 # =========================================================
@@ -282,11 +308,11 @@ async def real_nearby_hospitals(
         le=50,
     ),
 ):
-    places = await google_nearby_hospitals(
+    places = await _call_google(google_nearby_hospitals(
         latitude=latitude,
         longitude=longitude,
         radius_km=radius_km,
-    )
+    ))
 
     result = []
 
@@ -336,12 +362,12 @@ async def real_search_hospitals(
         le=50,
     ),
 ):
-    places = await google_search_hospitals(
+    places = await _call_google(google_search_hospitals(
         query=q,
         latitude=latitude,
         longitude=longitude,
         radius_km=radius_km,
-    )
+    ))
 
     result = []
 
