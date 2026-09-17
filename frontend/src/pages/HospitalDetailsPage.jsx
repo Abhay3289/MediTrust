@@ -8,7 +8,25 @@ import { apiError } from '../services/api';
 export function HospitalDetailsPage({ hospitalId, onNavigate, onBookHospitalVisit }) {
   const [hospital,setHospital]=useState(null); const [reviews,setReviews]=useState([]); const [error,setError]=useState('');
   const [directionsNotice,setDirectionsNotice]=useState(null);
-  useEffect(()=>{Promise.all([hospitalService.get(hospitalId),hospitalService.reviews(hospitalId)]).then(([h,r])=>{setHospital({...h,reviews:r});setReviews(r);}).catch(e=>setError(apiError(e)));},[hospitalId]);
+  useEffect(()=>{
+    setHospital(null);
+    setReviews([]);
+    setError('');
+
+    // Google-sourced hospitals (from search/nearby) aren't in our database,
+    // so the results page hands them over via sessionStorage instead.
+    let cached = null;
+    try {
+      cached = JSON.parse(sessionStorage.getItem(`meditrust_hospital_${hospitalId}`) || 'null');
+    } catch {}
+
+    if (cached) {
+      setHospital({ ...cached, reviews: [] });
+      return;
+    }
+
+    Promise.all([hospitalService.get(hospitalId),hospitalService.reviews(hospitalId)]).then(([h,r])=>{setHospital({...h,reviews:r});setReviews(r);}).catch(e=>setError(apiError(e)));
+  },[hospitalId]);
   if(error) return <div className="container"><div className="no-results-state"><h3>{error}</h3></div></div>;
   if(!hospital) return <div className="container"><div className="no-results-state"><h3>Loading hospital...</h3></div></div>;
 
@@ -67,7 +85,7 @@ export function HospitalDetailsPage({ hospitalId, onNavigate, onBookHospitalVisi
             <div className="details-meta-highlights">
               <div className="meta-highlight-item">
                 <Icon name="map-pin" size={16} color="#4f46e5" />
-                <span>{hospital.address}, {hospital.city}</span>
+                <span>{hospital.city ? `${hospital.address}, ${hospital.city}` : hospital.address}</span>
               </div>
               <div className="meta-highlight-item">
                 <Icon name="navigation" size={16} color="#0d9488" />
@@ -127,56 +145,75 @@ export function HospitalDetailsPage({ hospitalId, onNavigate, onBookHospitalVisi
               <p className="details-card-text">{hospital.overview}</p>
 
               <div className="hospital-contact-strip">
-                <div className="contact-item">
-                  <Icon name="phone" size={16} color="#4f46e5" />
-                  <div>
-                    <strong>Main Reception & Appointments</strong>
-                    <a href={`tel:${hospital.phone.replace(/[^0-9]/g, '')}`}>{hospital.phone}</a>
+                {hospital.phone && (
+                  <div className="contact-item">
+                    <Icon name="phone" size={16} color="#4f46e5" />
+                    <div>
+                      <strong>Main Reception & Appointments</strong>
+                      <a href={`tel:${hospital.phone.replace(/[^0-9]/g, '')}`}>{hospital.phone}</a>
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div className="contact-item emergency">
-                  <Icon name="activity" size={16} color="#e11d48" />
-                  <div>
-                    <strong>24/7 Emergency Ambulance Hotline</strong>
-                    <a href={`tel:${(hospital.emergencyHotline || hospital.phone || '').replace(/[^0-9]/g, '')}`}>
-                      {hospital.emergencyHotline}
-                    </a>
+                {(hospital.emergencyHotline || hospital.phone) && (
+                  <div className="contact-item emergency">
+                    <Icon name="activity" size={16} color="#e11d48" />
+                    <div>
+                      <strong>24/7 Emergency Ambulance Hotline</strong>
+                      <a href={`tel:${(hospital.emergencyHotline || hospital.phone || '').replace(/[^0-9]/g, '')}`}>
+                        {hospital.emergencyHotline || hospital.phone}
+                      </a>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {hospital.source === 'google' && !hospital.phone && (
+                  <p className="details-card-text" style={{ margin: 0 }}>
+                    No phone number available from Google for this hospital yet.{' '}
+                    {hospital.googleMapsUrl && (
+                      <a href={hospital.googleMapsUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', fontWeight: 700 }}>
+                        View on Google Maps
+                      </a>
+                    )}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Departments & Specialties */}
-            <div className="details-section-card">
-              <h2 className="details-card-heading">Accredited Clinical Departments</h2>
-              <div className="departments-grid">
-                {hospital.specialties.map((dept, idx) => (
-                  <div key={idx} className="department-badge-card">
-                    <div className="dept-icon-box">
-                      <Icon name="badge-check" size={18} color="#4f46e5" />
+            {hospital.specialties.length > 0 && (
+              <div className="details-section-card">
+                <h2 className="details-card-heading">Accredited Clinical Departments</h2>
+                <div className="departments-grid">
+                  {hospital.specialties.map((dept, idx) => (
+                    <div key={idx} className="department-badge-card">
+                      <div className="dept-icon-box">
+                        <Icon name="badge-check" size={18} color="#4f46e5" />
+                      </div>
+                      <div>
+                        <h4>{dept}</h4>
+                        <p>Active Inpatient & Outpatient Unit</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4>{dept}</h4>
-                      <p>Active Inpatient & Outpatient Unit</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Medical Facilities & Technology */}
-            <div className="details-section-card">
-              <h2 className="details-card-heading">Medical Equipment & Facilities</h2>
-              <div className="facilities-grid">
-                {hospital.facilities.map((fac, idx) => (
-                  <div key={idx} className="facility-pill-item">
-                    <Icon name="check" size={15} color="#0d9488" />
-                    <span>{fac}</span>
-                  </div>
-                ))}
+            {hospital.facilities.length > 0 && (
+              <div className="details-section-card">
+                <h2 className="details-card-heading">Medical Equipment & Facilities</h2>
+                <div className="facilities-grid">
+                  {hospital.facilities.map((fac, idx) => (
+                    <div key={idx} className="facility-pill-item">
+                      <Icon name="check" size={15} color="#0d9488" />
+                      <span>{fac}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Patient Reviews Section */}
             <div className="details-section-card">
@@ -226,7 +263,7 @@ export function HospitalDetailsPage({ hospitalId, onNavigate, onBookHospitalVisi
                   <Icon name="clock" size={16} color="#4f46e5" />
                   <div>
                     <strong>Emergency Department</strong>
-                    <span>{hospital.openingHours}</span>
+                    <span>{hospital.openingHours || 'Hours not listed — call to confirm'}</span>
                   </div>
                 </li>
                 <li>

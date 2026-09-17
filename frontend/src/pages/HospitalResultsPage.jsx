@@ -120,7 +120,22 @@ function normalizeGoogleHospital(
 
     type: 'Hospital',
 
+    tagline: 'Live result from Google Maps',
+
+    city: null,
+
+    phone: null,
+
+    website: null,
+
+    overview:
+      'This hospital is shown from live Google Maps data and is not yet ' +
+      'MediTrust-verified. Facility details, departments and hours are ' +
+      'not fully listed here — please call ahead to confirm.',
+
     specialties: [],
+
+    facilities: [],
 
     hospitalVerified: false,
 
@@ -762,6 +777,31 @@ export function HospitalResultsPage({
       })
     );
     onNavigate('stays', { hospitalId: hospital.id });
+  };
+
+
+  // =====================================================
+  // VIEW DETAILS
+  // =====================================================
+
+  const handleViewDetails = (hospitalOrId) => {
+    const id =
+      typeof hospitalOrId === 'string'
+        ? hospitalOrId
+        : hospitalOrId.id;
+
+    const hospital = hospitalsData.find((h) => h.id === id);
+
+    // Google hospitals aren't in our DB, so the details page can't look
+    // them up by id — hand it the data we already have.
+    if (hospital && hospital.source === 'google') {
+      sessionStorage.setItem(
+        `meditrust_hospital_${id}`,
+        JSON.stringify(hospital)
+      );
+    }
+
+    onSelectHospital(id);
   };
 
 
@@ -1810,8 +1850,8 @@ const matchScore =
 
                             event.stopPropagation();
 
-                            onSelectHospital(
-                              hospital.id
+                            handleViewDetails(
+                              hospital
                             );
 
                           }}
@@ -1872,7 +1912,7 @@ const matchScore =
               }
 
               onViewDetails={(id) =>
-                onSelectHospital(
+                handleViewDetails(
                   id
                 )
               }
