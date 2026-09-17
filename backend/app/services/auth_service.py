@@ -1,8 +1,4 @@
-import os
-
 from fastapi import HTTPException, status
-from google.auth.transport import requests
-from google.oauth2 import id_token
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
@@ -114,74 +110,6 @@ def tokens(user: User):
         "refresh_token": create_refresh_token(user.id),
         "token_type": "bearer",
     }
-
-
-# =========================================================
-# GOOGLE AUTHENTICATION
-# =========================================================
-
-def verify_google_credential(credential: str):
-    google_client_ids = settings.google_client_ids
-
-    if not google_client_ids:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="GOOGLE_CLIENT_ID is not configured",
-        )
-
-    try:
-        google_user = id_token.verify_oauth2_token(
-            credential,
-            requests.Request(),
-            google_client_ids,
-        )
-
-        return google_user
-
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid Google credential",
-        )
-
-
-def google_login(db: Session, credential: str) -> tuple[User, bool]:
-    """Return the user and whether the account was just created."""
-    google_user = verify_google_credential(credential)
-
-    google_email = google_user.get("email")
-    google_name = google_user.get("name") or "Google User"
-
-    if not google_email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Google account email not available",
-        )
-
-    google_email = google_email.lower().strip()
-
-    user = db.scalar(
-        select(User).where(User.email == google_email)
-    )
-
-    created = user is None
-
-    if created:
-        user = User(
-            full_name=google_name.strip(),
-            email=google_email,
-            hashed_password=hash_password(
-                os.urandom(32).hex()
-            ),
-            role="patient",
-            consent=True,
-        )
-
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-
-    return user, created
 
 
 # =========================================================

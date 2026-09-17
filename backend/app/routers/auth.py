@@ -22,7 +22,6 @@ from app.services.auth_service import (
     register,
     login,
     tokens,
-    google_login,
     request_password_reset,
     verify_password_reset_otp,
     reset_password,
@@ -42,14 +41,6 @@ router = APIRouter(
     prefix="/auth",
     tags=["Authentication"],
 )
-
-
-# =========================================================
-# GOOGLE LOGIN REQUEST
-# =========================================================
-
-class GoogleLoginRequest(BaseModel):
-    credential: str
 
 
 # =========================================================
@@ -100,41 +91,6 @@ def login_user(
             user.full_name,
             "email and password",
         )
-
-    return tokens(user)
-
-
-# =========================================================
-# GOOGLE LOGIN
-# =========================================================
-
-@router.post(
-    "/google",
-    response_model=TokenResponse,
-)
-def google_login_user(
-    data: GoogleLoginRequest,
-    background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db),
-):
-    user, created = google_login(
-        db,
-        data.credential,
-    )
-
-    if created:
-        background_tasks.add_task(
-            send_welcome_email,
-            user.email,
-            user.full_name,
-        )
-
-    background_tasks.add_task(
-        send_login_email,
-        user.email,
-        user.full_name,
-        "Google",
-    )
 
     return tokens(user)
 

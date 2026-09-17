@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
 import { Icon } from '../components/Icons';
 import { HospitalSkyline } from '../components/HospitalSkyline';
 import { useAuth } from '../context/AuthContext';
 import { apiError } from '../services/api';
 
 export function LoginPage({ onNavigate }) {
-  const { login, register, googleLogin } = useAuth();
+  const { login, register } = useAuth();
 
   const [mode, setMode] = useState('login');
 
@@ -466,31 +465,6 @@ export function LoginPage({ onNavigate }) {
             </button>
 
           </form>
-{/* GOOGLE LOGIN */}
-<div style={{ marginBottom: '16px' }}>
-  <GoogleLogin
-    onSuccess={async (credentialResponse) => {
-      setError('');
-      try {
-        setSubmitting(true);
-        await googleLogin(credentialResponse.credential);
-        onNavigate('home');
-      } catch (err) {
-        setError(apiError(err));
-      } finally {
-        setSubmitting(false);
-      }
-    }}
-    onError={() => {
-      setError('Google login failed. Please try again.');
-    }}
-    useOneTap={false}
-  />
-</div>
-          {/* DIVIDER */}
-          <div className="auth-divider">
-            <span>or</span>
-          </div>
 
           {/* GUEST */}
           <button
