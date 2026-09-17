@@ -1,5 +1,7 @@
+// In production (Vercel) the backend is served from the same domain under /api.
 const API_URL =
-  import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? 'http://localhost:8000/api' : '/api');
 
 // FastAPI validation errors arrive as a list of {loc, msg}; turn them into text.
 function detailText(detail) {
