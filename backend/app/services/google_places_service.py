@@ -9,6 +9,11 @@ from app.core.config import settings
 GOOGLE_PLACES_URL = "https://places.googleapis.com/v1/places:searchNearby"
 GOOGLE_TEXT_SEARCH_URL = "https://places.googleapis.com/v1/places:searchText"
 
+# Same area/query searched again shortly after (page reload, retry,
+# another visitor nearby) reuses this instead of spending Google quota.
+_CACHE_TTL_SECONDS = 600
+_hospital_cache: dict[tuple, tuple[float, list]] = {}
+
 
 def get_api_key():
     api_key = settings.google_maps_api_key
@@ -28,6 +33,11 @@ async def nearby_hospitals(
     longitude: float,
     radius_km: float = 25,
 ):
+    cache_key = ("nearby", round(latitude, 3), round(longitude, 3), round(radius_km, 1))
+    cached = _hospital_cache.get(cache_key)
+    if cached and time.monotonic() - cached[0] < _CACHE_TTL_SECONDS:
+        return cached[1]
+
     api_key = get_api_key()
 
     radius_meters = min(radius_km * 1000, 50000)
@@ -69,7 +79,9 @@ async def nearby_hospitals(
 
     response.raise_for_status()
 
-    return response.json().get("places", [])
+    places = response.json().get("places", [])
+    _hospital_cache[cache_key] = (time.monotonic(), places)
+    return places
 
 
 async def search_hospitals(
@@ -78,6 +90,17 @@ async def search_hospitals(
     longitude: float | None = None,
     radius_km: float = 25,
 ):
+    cache_key = (
+        "search",
+        query.strip().lower(),
+        round(latitude, 3) if latitude is not None else None,
+        round(longitude, 3) if longitude is not None else None,
+        round(radius_km, 1),
+    )
+    cached = _hospital_cache.get(cache_key)
+    if cached and time.monotonic() - cached[0] < _CACHE_TTL_SECONDS:
+        return cached[1]
+
     api_key = get_api_key()
 
     headers = {
@@ -124,7 +147,9 @@ async def search_hospitals(
 
     response.raise_for_status()
 
-    return response.json().get("places", [])
+    places = response.json().get("places", [])
+    _hospital_cache[cache_key] = (time.monotonic(), places)
+    return places
 
 
 # ---------------------------------------------------------
