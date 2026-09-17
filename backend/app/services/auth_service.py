@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -24,6 +24,19 @@ def split_identifier(identifier: str):
         return identifier.lower(), None
 
     return None, identifier
+
+
+def find_user_by_identifier(db: Session, email: str | None, phone: str | None) -> User | None:
+    """Look up a user by whichever field split_identifier resolved.
+
+    Only one of email/phone is ever set. Filtering on both with OR would
+    also match every other user whose unused field is NULL (SQLAlchemy
+    turns `== None` into `IS NULL`), returning the wrong account.
+    """
+    stmt = select(User).where(
+        User.email == email if email else User.phone == phone
+    )
+    return db.scalar(stmt)
 
 
 # =========================================================
@@ -78,15 +91,7 @@ def register(db: Session, data):
 
 def login(db: Session, data):
     email, phone = split_identifier(data.identifier)
-
-    stmt = select(User).where(
-        or_(
-            User.email == email,
-            User.phone == phone,
-        )
-    )
-
-    user = db.scalar(stmt)
+    user = find_user_by_identifier(db, email, phone)
 
     if not user or not verify_password(
         data.password,
@@ -124,14 +129,7 @@ def request_password_reset(
 
     email, phone = split_identifier(identifier)
 
-    stmt = select(User).where(
-        or_(
-            User.email == email,
-            User.phone == phone,
-        )
-    )
-
-    user = db.scalar(stmt)
+    user = find_user_by_identifier(db, email, phone)
 
     if not user:
         return {
@@ -166,14 +164,7 @@ def verify_password_reset_otp(
 
     email, phone = split_identifier(identifier)
 
-    stmt = select(User).where(
-        or_(
-            User.email == email,
-            User.phone == phone,
-        )
-    )
-
-    user = db.scalar(stmt)
+    user = find_user_by_identifier(db, email, phone)
 
     if not user:
         raise HTTPException(
@@ -207,14 +198,7 @@ def reset_password(
 
     email, phone = split_identifier(identifier)
 
-    stmt = select(User).where(
-        or_(
-            User.email == email,
-            User.phone == phone,
-        )
-    )
-
-    user = db.scalar(stmt)
+    user = find_user_by_identifier(db, email, phone)
 
     if not user:
         raise HTTPException(
