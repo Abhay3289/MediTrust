@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Icon } from '../components/Icons';
 import { HospitalSkyline } from '../components/HospitalSkyline';
+import { DoctorIllustration } from '../components/DoctorIllustration';
 import { doctorService } from '../services/doctorService';
 import { apiError } from '../services/api';
 
@@ -27,6 +28,8 @@ export function OnlineConsultationPage({ onSelectDoctor }) {
       {/* Doctor Search Hero Section */}
       <section className="consultation-hero">
         <HospitalSkyline tone="light" className="hero-skyline-backdrop" />
+        <DoctorIllustration variant="female" className="hero-doctor hero-doctor-left" />
+        <DoctorIllustration variant="male" className="hero-doctor hero-doctor-right" />
         <div className="container">
           <div className="consultation-hero-content">
             <div className="section-pill">

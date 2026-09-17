@@ -5509,3 +5509,58 @@
   flex-wrap: wrap;
   gap: 12px;
 }
+
+/* Online Consultation: faded doctor illustrations in the hero background */
+.hero-doctor {
+  position: absolute;
+  bottom: 0;
+  z-index: 0;
+  height: 92%;
+  width: auto;
+  opacity: 0.22;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+}
+
+.hero-doctor-left {
+  left: max(0px, calc(50% - 640px));
+}
+
+.hero-doctor-right {
+  right: max(0px, calc(50% - 640px));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-doctor {
+    animation: doctorFloat 7s ease-in-out infinite;
+  }
+
+  .hero-doctor-right {
+    animation-delay: -3.5s;
+  }
+}
+
+@keyframes doctorFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Too crowded behind the text on smaller screens */
+@media (max-width: 1024px) {
+  .hero-doctor {
+    opacity: 0.12;
+    height: 70%;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-doctor-left {
+    display: none;
+  }
+
+  .hero-doctor-right {
+    right: -40px;
+    opacity: 0.1;
+  }
+}
